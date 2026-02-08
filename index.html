@@ -1,7 +1,16 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <script>
+      (function () {
+        var saved = localStorage.getItem("taskflow_theme");
+        var theme = saved;
+        if (!theme && window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches)
+          theme = "dark";
+        document.documentElement.dataset.theme = theme || "light";
+      })();
+    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="theme-color" content="#7c3aed" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
