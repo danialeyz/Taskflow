@@ -507,6 +507,11 @@ function init() {
   el.filterPriority.addEventListener("change", renderTasks);
   el.clearCompleted.addEventListener("click", clearCompleted);
   el.themeToggle.addEventListener("click", toggleTheme);
+
+  // PWA: register service worker
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("./sw.js", { scope: "./" }).catch(() => {});
+  }
 }
 
 document.addEventListener("DOMContentLoaded", init);

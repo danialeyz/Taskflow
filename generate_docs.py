@@ -75,7 +75,7 @@ class TaskFlowDoc(FPDF):
 
         # Tech badges
         self.ln(10)
-        techs = ["HTML5", "CSS3", "JavaScript ES6+", "Chart.js", "LocalStorage API"]
+        techs = ["HTML5", "CSS3", "JavaScript ES6+", "Chart.js", "PWA", "LocalStorage API"]
         total_w = sum(self.get_string_width(t) + 14 for t in techs) + 6 * (len(techs) - 1)
         start_x = (210 - total_w) / 2
         self.set_x(start_x)
@@ -216,19 +216,20 @@ def build_pdf():
         ("1", "Project Overview", "3"),
         ("2", "Technology Stack", "4"),
         ("3", "Project Structure", "5"),
-        ("4", "Architecture Overview", "6"),
-        ("5", "HTML Layer (index.html)", "8"),
-        ("6", "CSS Architecture (style.css)", "11"),
-        ("7", "JavaScript Architecture (app.js)", "15"),
-        ("8", "Data Model & Storage", "20"),
-        ("9", "Circular Progress Bar", "22"),
-        ("10", "Chart.js Integration", "23"),
-        ("11", "Theme System (Dark Mode)", "25"),
-        ("12", "Responsive Design System", "26"),
-        ("13", "Animation System", "28"),
-        ("14", "Security Considerations", "29"),
-        ("15", "Performance Notes", "29"),
-        ("16", "Developer Guide", "30"),
+        ("4", "Architecture Overview", "7"),
+        ("5", "HTML Layer (index.html)", "9"),
+        ("6", "CSS Architecture (style.css)", "12"),
+        ("7", "JavaScript Architecture (app.js)", "16"),
+        ("8", "Data Model & Storage", "21"),
+        ("9", "Circular Progress Bar", "23"),
+        ("10", "Chart.js Integration", "24"),
+        ("11", "Theme System (Dark Mode)", "26"),
+        ("12", "Responsive Design System", "27"),
+        ("13", "Animation System", "29"),
+        ("14", "PWA & Add to Home Screen", "30"),
+        ("15", "Security Considerations", "31"),
+        ("16", "Performance Notes", "31"),
+        ("17", "Developer Guide", "32"),
     ]
 
     for num, title, page in toc:
@@ -274,6 +275,7 @@ def build_pdf():
         "XSS protection: All user input is escaped before rendering",
         "Smooth animations: slideIn, slideOut, shake validation, hover micro-interactions",
         "Batch operations: Clear all completed tasks at once with animated removal",
+        "PWA support: Installable as app (Add to Home Screen on iOS/Android), offline cache via service worker",
     ]
     for f in features:
         pdf.bullet(f)
@@ -294,6 +296,8 @@ def build_pdf():
         ("CSS3", "Living Standard", "Custom Properties, Grid, Flexbox, animations"),
         ("JavaScript", "ES6+", "Application logic, DOM manipulation, events"),
         ("Chart.js", "v4.x (CDN)", "Bar chart and doughnut chart rendering"),
+        ("Web App Manifest", "W3C", "PWA metadata, icons, theme, display mode"),
+        ("Service Worker", "Web API", "Offline cache, installability"),
         ("Google Fonts", "Inter", "Typography (weights 300-800)"),
         ("localStorage", "Web API", "Client-side data persistence"),
         ("SVG", "1.1", "Circular progress bar, inline icons"),
@@ -313,32 +317,41 @@ def build_pdf():
 
     pdf.code_block(
         """taskflow-project/
-|-- index.html              # Single-page application entry point
+|-- index.html                  # Single-page application entry point
+|-- manifest.webmanifest        # PWA manifest (name, icons, theme, display)
+|-- sw.js                       # Service worker (offline cache)
 |-- css/
-|   +-- style.css           # Complete stylesheet (1077 lines)
+|   +-- style.css               # Complete stylesheet
 |-- js/
-|   +-- app.js              # Application logic (512 lines)
+|   +-- app.js                  # Application logic, charts, SW registration
 |-- assets/
 |   +-- images/
-|       +-- check.png       # Legacy asset (unused, kept for history)
+|   |   +-- check.png           # Legacy asset (kept for history)
+|   +-- icons/
+|       +-- icon-192.png        # PWA icon 192x192 (home screen)
+|       +-- icon-512.png        # PWA icon 512x512
 |-- docs/
 |   +-- TaskFlow_Architecture.pdf   # This document
+|-- generate_docs.py           # PDF documentation generator
 |-- .gitignore
 |-- README.md""",
         title="Directory Tree"
     )
 
     pdf.body_text(
-        "The project follows a classic separation of concerns with three core files:"
+        "The project follows a classic separation of concerns with three core application files, "
+        "plus PWA assets:"
     )
-    pdf.bullet("index.html - Structure and content (349 lines)")
-    pdf.bullet("css/style.css - Presentation and responsive layout (1077 lines)")
-    pdf.bullet("js/app.js - Behavior, state management, and charts (512 lines)")
+    pdf.bullet("index.html - Structure and content, PWA meta/link tags")
+    pdf.bullet("css/style.css - Presentation and responsive layout")
+    pdf.bullet("js/app.js - Behavior, state management, charts, service worker registration")
+    pdf.bullet("manifest.webmanifest - PWA name, icons, theme_color, display: standalone")
+    pdf.bullet("sw.js - Service worker for caching static assets (offline support)")
 
     pdf.ln(2)
     pdf.body_text(
-        "Total codebase size is approximately 1,940 lines of hand-written code. There is no build "
-        "step, no bundler, and no transpilation. The code runs directly in the browser as-is."
+        "There is no build step, no bundler, and no transpilation. The code runs directly in "
+        "the browser. The app is installable as a PWA (Add to Home Screen on iOS and Android)."
     )
 
     # ===================== 4. ARCHITECTURE OVERVIEW =====================
@@ -355,29 +368,28 @@ def build_pdf():
     pdf.code_block(
         """+================================================================+
 |                        BROWSER                                 |
-|  +------------------+    +------------------+    +-----------+ |
-|  |   index.html     |    |   css/style.css  |    | Chart.js  | |
-|  |   (Structure)    |    |   (Presentation) |    | (CDN)     | |
-|  +--------+---------+    +--------+---------+    +-----+-----+ |
-|           |                       |                    |       |
-|           +----------+------------+--------------------+       |
-|                      |                                         |
-|              +-------v--------+                                |
-|              |   js/app.js    |                                |
-|              |   (Behavior)   |                                |
-|              +---+----+---+---+                                |
-|                  |    |   |                                    |
-|         +--------+  +-+  +--------+                            |
-|         v           v             v                            |
-|  +-----------+ +---------+ +------------+                      |
-|  | DOM API   | | Storage | | Chart.js   |                      |
-|  | Rendering | | API     | | Instances  |                      |
-|  +-----------+ +---------+ +------------+                      |
-|                     |                                          |
-|              +------v------+                                   |
-|              | localStorage|                                   |
-|              | (JSON data) |                                   |
-|              +-------------+                                   |
+|  +------------------+  +------------------+  +-------+  +------+ |
+|  |   index.html     |  |   css/style.css  |  |manifest|  | sw.js| |
+|  |   (Structure +   |  |   (Presentation) |  |(PWA)   |  |(Cache)| |
+|  |    PWA meta)     |  +--------+---------+  +----+---+  +--+---+ |
+|  +--------+---------+           |                |         |     |
+|           |                    |                |         |     |
+|  +--------+---------+    +------v----------------v---------v+   |
+|  |   js/app.js      |    | Chart.js (CDN)                    |   |
+|  |   (Behavior +    |    +-----------------------------------+   |
+|  |    SW register) |                                           |
+|  +---+----+---+-----+                                           |
+|      |    |   |                                                 |
+|  +---+  +-+  +--------+  +------------+                        |
+|  v        v       v           v                                 |
+| DOM   Storage  Chart.js   Service Worker                        |
+| API   (local   Instances  (offline cache)                        |
+|       Storage)                                                  |
+|           |                                                     |
+|  +--------v--------+                                            |
+|  |   localStorage  |                                            |
+|  |   (JSON data)   |                                            |
+|  +-----------------+                                            |
 +================================================================+""",
         title="System Architecture"
     )
@@ -431,7 +443,7 @@ render() function called
         ("Charts", "Chart.js init, update, weekly data, color helpers"),
         ("Theme", "initTheme, toggleTheme with chart color sync"),
         ("Event Handlers", "handleAddTask, handleTaskClick"),
-        ("Initialization", "init() - wires everything on DOMContentLoaded"),
+        ("Initialization", "init() - wires everything + service worker registration"),
     ]
     for i, r in enumerate(sections):
         pdf.table_row(r, widths2, fill=i % 2 == 0)
@@ -447,8 +459,12 @@ render() function called
 
     pdf.subsection("5.1 Document Head")
     pdf.body_text(
-        "The <head> section includes viewport meta for responsive design, Google Fonts preconnect "
-        "for faster font loading, the Inter typeface (weights 300-800), and the main stylesheet."
+        "The <head> section includes viewport meta for responsive design (with viewport-fit=cover "
+        "for notched devices), theme-color, and the main stylesheet. For PWA and Add to Home "
+        "Screen support it also includes: <link rel='manifest' href='manifest.webmanifest'>, "
+        "<link rel='apple-touch-icon' href='assets/icons/icon-192.png'>, and iOS-specific meta "
+        "tags (apple-mobile-web-app-capable, apple-mobile-web-app-status-bar-style, "
+        "apple-mobile-web-app-title). Google Fonts use preconnect for faster font loading."
     )
 
     pdf.subsection("5.2 Layout Structure")
@@ -475,7 +491,7 @@ render() function called
   </div>
 
   <script src="chart.js (CDN)">
-  <script src="js/app.js">
+  <script src="js/app.js">   <!-- Also registers service worker -->
 </body>""",
         title="DOM Tree Overview"
     )
@@ -1174,8 +1190,60 @@ Examples:
         "'standard' curve. This provides a natural deceleration feel."
     )
 
-    # ===================== 14. SECURITY =====================
-    pdf.section_title("14", "Security Considerations")
+    # ===================== 14. PWA & ADD TO HOME SCREEN =====================
+    pdf.add_page()
+    pdf.section_title("14", "PWA & Add to Home Screen")
+
+    pdf.body_text(
+        "TaskFlow is a Progressive Web App (PWA). It can be installed on the home screen of "
+        "iOS and Android devices and runs in standalone mode (no browser UI). A service worker "
+        "caches static assets for faster loads and basic offline support."
+    )
+
+    pdf.subsection("14.1 Web App Manifest (manifest.webmanifest)")
+
+    pdf.body_text(
+        "The manifest defines the app name (TaskFlow), short_name, start_url (index.html), "
+        "display (standalone), theme_color and background_color, and two icon sizes (192x192 "
+        "and 512x512) in assets/icons/. Browsers and iOS use this for Add to Home Screen."
+    )
+
+    pdf.subsection("14.2 Service Worker (sw.js)")
+
+    pdf.body_text(
+        "The service worker installs and activates with cache name 'taskflow-v1'. On install it "
+        "pre-caches index.html, manifest.webmanifest, css/style.css, js/app.js, and the two "
+        "icons. On fetch it serves from cache when available (cache-first for same-origin "
+        "requests), then network. This enables the app to load from cache when offline."
+    )
+
+    pdf.subsection("14.3 iOS-Specific Meta Tags")
+
+    pdf.body_text(
+        "For Add to Home Screen on iPhone (Safari), the HTML includes: apple-mobile-web-app-"
+        "capable (yes), apple-mobile-web-app-status-bar-style (black-translucent), "
+        "apple-mobile-web-app-title (TaskFlow), and <link rel='apple-touch-icon'> pointing to "
+        "assets/icons/icon-192.png. These control how the app appears when launched from the "
+        "home screen."
+    )
+
+    pdf.subsection("14.4 Registration in app.js")
+
+    pdf.code_block(
+        """if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("./sw.js", { scope: "./" }).catch(() => {});
+}""",
+        title="Service worker registration (in init())"
+    )
+
+    pdf.info_box(
+        "PWA features require HTTPS (or localhost). When the app is opened from the home "
+        "screen, the start URL from the manifest is used; the service worker scope is './'.",
+        color=pdf.ACCENT
+    )
+
+    # ===================== 15. SECURITY =====================
+    pdf.section_title("15", "Security Considerations")
 
     pdf.bullet("XSS Prevention: All user-entered task text is escaped via escapeHtml() before being "
                "inserted into innerHTML. This function creates a temporary DOM text node to safely "
@@ -1188,9 +1256,9 @@ Examples:
     pdf.bullet("localStorage limits: ~5MB per origin. For a todo app, this is more than sufficient "
                "(thousands of tasks). No sensitive data is stored.")
 
-    # ===================== 15. PERFORMANCE =====================
+    # ===================== 16. PERFORMANCE =====================
     pdf.add_page()
-    pdf.section_title("15", "Performance Notes")
+    pdf.section_title("16", "Performance Notes")
 
     pdf.bullet("DOM caching: All querySelector calls happen once at init time and are stored in "
                "the 'el' object. Subsequent accesses are O(1) property lookups.")
@@ -1205,12 +1273,14 @@ Examples:
     pdf.bullet("CSS containment: Cards use overflow: hidden, which allows the browser to "
                "optimize paint operations.")
     pdf.bullet("No framework overhead: Zero library code for DOM management. The entire JS "
-               "payload is ~512 lines (~12KB unminified).")
+               "payload is small and unminified.")
+    pdf.bullet("Service worker cache: Static assets are cached after first load for faster "
+               "repeat visits and offline availability.")
 
-    # ===================== 16. DEVELOPER GUIDE =====================
-    pdf.section_title("16", "Developer Guide")
+    # ===================== 17. DEVELOPER GUIDE =====================
+    pdf.section_title("17", "Developer Guide")
 
-    pdf.subsection("16.1 Getting Started")
+    pdf.subsection("17.1 Getting Started")
 
     pdf.code_block(
         """# Clone the repository
@@ -1226,7 +1296,7 @@ python -m http.server 8000""",
         title="Quick Start"
     )
 
-    pdf.subsection("16.2 Adding a New Feature")
+    pdf.subsection("17.2 Adding a New Feature")
 
     pdf.body_text("Follow these steps to add a new feature (example: due dates):")
     pdf.bullet("1. Extend the todo schema in addTodo() with a new field (e.g., dueDate: null)")
@@ -1236,7 +1306,7 @@ python -m http.server 8000""",
     pdf.bullet("5. Update getFilteredTodos() if the new field should be filterable")
     pdf.bullet("6. Test the legacy migration - old todos without the field should work")
 
-    pdf.subsection("16.3 Adding a New Chart")
+    pdf.subsection("17.3 Adding a New Chart")
 
     pdf.body_text("To add a new chart (example: priority distribution):")
     pdf.bullet("1. Add a <canvas> element inside a .chart-card in the sidebar HTML")
@@ -1246,7 +1316,7 @@ python -m http.server 8000""",
     pdf.bullet("5. Update it in updateCharts()")
     pdf.bullet("6. Handle theme colors in toggleTheme()")
 
-    pdf.subsection("16.4 Modifying the Color Scheme")
+    pdf.subsection("17.4 Modifying the Color Scheme")
 
     pdf.body_text(
         "All colors are defined as CSS Custom Properties in :root (light) and "
@@ -1265,20 +1335,23 @@ python -m http.server 8000""",
         title="Color Scheme Change"
     )
 
-    pdf.subsection("16.5 Key Files Quick Reference")
+    pdf.subsection("17.5 Key Files Quick Reference")
 
     widths5 = [55, 115]
     pdf.table_header(["What to change", "Where to look"], widths5)
     rows5 = [
-        ("App name/branding", "index.html line 36, <h1>TaskFlow</h1>"),
-        ("Color palette", "css/style.css :root variables (lines 10-55)"),
-        ("Dark mode colors", "css/style.css [data-theme='dark'] (lines 58-83)"),
-        ("Layout breakpoints", "css/style.css @media queries (lines 874+)"),
-        ("Todo data schema", "js/app.js addTodo() function (line 93)"),
-        ("Chart config", "js/app.js initCharts() function (line 253)"),
-        ("Storage key", "js/app.js STORAGE_KEY constant (line 2)"),
-        ("Progress bar math", "js/app.js updateStats() (line 204)"),
-        ("Priority options", "index.html priority-group (line 238)"),
+        ("App name/branding", "index.html <h1>TaskFlow</h1>; manifest.webmanifest name/short_name"),
+        ("Color palette", "css/style.css :root variables"),
+        ("Dark mode colors", "css/style.css [data-theme='dark']"),
+        ("Layout breakpoints", "css/style.css @media queries"),
+        ("Todo data schema", "js/app.js addTodo() function"),
+        ("Chart config", "js/app.js initCharts() function"),
+        ("Storage key", "js/app.js STORAGE_KEY constant"),
+        ("Progress bar math", "js/app.js updateStats()"),
+        ("Priority options", "index.html priority-group"),
+        ("PWA name / theme", "manifest.webmanifest (name, theme_color, icons)"),
+        ("Offline cache list", "sw.js STATIC_ASSETS array"),
+        ("Home screen icon", "assets/icons/icon-192.png, icon-512.png"),
     ]
     for i, r in enumerate(rows5):
         pdf.table_row(r, widths5, fill=i % 2 == 0)
