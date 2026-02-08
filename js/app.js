@@ -405,7 +405,23 @@ function initTheme() {
   const saved = localStorage.getItem(THEME_KEY);
   if (saved) {
     document.documentElement.dataset.theme = saved;
+    return;
   }
+  // No saved preference: use device theme (already set by inline script in <head>)
+  applySystemTheme();
+  // When user has no saved preference, follow system theme changes
+  const mq = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)");
+  if (mq) mq.addEventListener("change", () => {
+    if (!localStorage.getItem(THEME_KEY)) {
+      applySystemTheme();
+      if (typeof updateCharts === "function") updateCharts();
+    }
+  });
+}
+
+function applySystemTheme() {
+  const prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+  document.documentElement.dataset.theme = prefersDark ? "dark" : "light";
 }
 
 function toggleTheme() {
