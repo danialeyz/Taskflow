@@ -1,12 +1,29 @@
 # Todo List Project
 
 ## Overview
-This project is designed to help you manage your tasks efficiently. It utilizes local storage to save your items, ensuring that you can access them anytime, even if you close the page. 
+This project is designed to help you manage your tasks efficiently. It utilizes local storage to save your items, ensuring that you can access them anytime, even if you close the page.
+
+## Project Structure
+
+```
+todolist-project/
+├── index.html          # Entry point
+├── README.md
+├── .gitignore
+├── .hintrc             # Hint lint config
+├── css/
+│   └── style.css       # Styles
+├── js/
+│   └── app.js          # Application logic
+└── assets/
+    └── images/
+        └── check.png   # Completed-task icon
+```
 
 ## Features
-- **Items Saving**: Your todo list items are automatically saved in the local storage, providing a seamless experience.
-- **Items Filtering**: Easily organize and prioritize your tasks with the built-in filtering feature. Sort your items based on completion status, due date, or any other criteria that suits your workflow.
-- **Completion Status**: Mark tasks as completed or uncompleted to keep track of your progress and stay organized.
+- **Items Saving**: Your todo list items are automatically saved in local storage.
+- **Items Filtering**: Filter by All, Completed, or Uncompleted.
+- **Completion Status**: Click a task to toggle completed; remove with the trash button.
 
 ## Get Started
-To get started with the Todo List project, simply clone the repository and open the index.html file in your preferred web browser. Start adding, editing, and completing your tasks with ease!
+Clone the repository and open `index.html` in your browser. No build step required.
