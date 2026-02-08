@@ -95,6 +95,27 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   transition: background var(--transition-slow), color var(--transition-slow);
+  /* Clear iPhone home indicator / bottom safe area */
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+/* Hide scrollbar everywhere (Chrome/Safari/WebKit, Firefox, IE); no vertical scrollbar */
+html,
+body {
+  overflow-y: hidden;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+  display: none !important;
+  width: 0;
+  height: 0;
+}
+*::-webkit-scrollbar {
+  display: none !important;
+  width: 0;
+  height: 0;
 }
 
 .container {
@@ -115,6 +136,8 @@ body {
   top: 0;
   z-index: 100;
   box-shadow: 0 4px 20px rgba(99, 102, 241, 0.3);
+  /* Safe area so navbar content isn’t under notch/Dynamic Island (iPhone) or status bar */
+  padding-top: env(safe-area-inset-top, 0);
 }
 
 .header-inner {
@@ -199,7 +222,7 @@ body {
   display: grid;
   grid-template-columns: var(--sidebar-width) 1fr;
   gap: 28px;
-  padding-top: 28px;
+  padding-top: 40px;
   padding-bottom: 60px;
   align-items: start;
 }
@@ -210,7 +233,8 @@ body {
   flex-direction: column;
   gap: 16px;
   position: sticky;
-  top: calc(var(--header-height) + 28px);
+  /* Account for header height + safe area (iPhone notch/Dynamic Island) so sidebar sticks below */
+  top: calc(var(--header-height) + env(safe-area-inset-top, 0) + 28px);
 }
 
 /* ===== Cards ===== */
@@ -900,8 +924,19 @@ body {
     --header-height: 64px;
   }
 
+  /* On phones: ensure at least 12px from top when safe-area is 0 (e.g. some Android PWAs) */
+  .app-header {
+    padding-top: max(env(safe-area-inset-top, 0), 12px);
+  }
+
   .container {
     padding: 0 16px;
+  }
+
+  /* Extra horizontal padding for content only (navbar stays edge-to-edge) */
+  .container.app-layout {
+    padding-left: 24px;
+    padding-right: 24px;
   }
 
   .brand-logo {
@@ -932,7 +967,8 @@ body {
   }
 
   .app-layout {
-    padding-top: 20px;
+    margin-top: 20px;
+    padding-top: 28px;
     padding-bottom: 40px;
     gap: 16px;
   }
@@ -982,6 +1018,17 @@ body {
 @media screen and (max-width: 480px) {
   .container {
     padding: 0 12px;
+  }
+
+  /* Content-only horizontal padding (navbar unchanged) */
+  .container.app-layout {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+
+  .app-layout {
+    margin-top: 16px;
+    padding-top: 24px;
   }
 
   .brand {
