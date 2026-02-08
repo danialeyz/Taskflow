@@ -238,8 +238,13 @@ taskflow-project/
 ├── js/
 │   └── app.js                          # Application logic & charts (512 lines)
 ├── assets/
-│   └── images/
-│       └── check.png                   # Legacy asset (preserved for git history)
+│   ├── images/
+│   │   └── check.png                   # Legacy asset (preserved for git history)
+│   └── icons/
+│       ├── icon-192.png                # PWA icon (192×192)
+│       └── icon-512.png                # PWA icon (512×512)
+├── manifest.webmanifest               # PWA manifest (name, icons, theme)
+├── sw.js                              # Service worker (offline cache)
 ├── docs/
 │   └── TaskFlow_Architecture.pdf       # 27-page architecture documentation
 ├── generate_docs.py                    # PDF documentation generator script
@@ -270,6 +275,33 @@ python -m http.server 8000
 ```
 
 > **That's it.** No `npm install`. No build step. No configuration. Just open and use.
+
+### Add to iPhone Home Screen (PWA)
+
+TaskFlow is a **Progressive Web App (PWA)**. To install it on your iPhone:
+
+1. **Serve the app over HTTPS** (required for Add to Home Screen). For example:
+   - Deploy to GitHub Pages, Netlify, or any static host, or
+   - Run a local server: `npx serve .` or `python -m http.server 8000` and use a tunnel (e.g. ngrok) if testing on your phone.
+2. Open the app in **Safari** on your iPhone.
+3. Tap the **Share** button (square with arrow).
+4. Tap **Add to Home Screen**.
+5. Name it (e.g. "TaskFlow") and tap **Add**.
+
+The app will open in standalone mode (no browser UI) and use the TaskFlow icon. A service worker caches the app for faster loads and basic offline support.
+
+### Deployment Checklist
+
+TaskFlow is **static** (HTML, CSS, JS, assets). Deploy the project root to any static host.
+
+| Check | Notes |
+|:---|:---|
+| **HTTPS** | Required for service worker and PWA install. All hosts below use HTTPS. |
+| **Root or subpath** | Works at `https://domain.com/` or `https://domain.com/repo/`. All paths are relative. |
+| **Files to upload** | `index.html`, `manifest.webmanifest`, `sw.js`, `css/`, `js/`, `assets/` (and optionally `docs/`, `README.md`). |
+| **No server config** | No redirects or headers needed. Optional: serve `manifest.webmanifest` as `Content-Type: application/manifest+json`. |
+
+**Suggested hosts:** GitHub Pages, Netlify, Vercel, Cloudflare Pages. Drag-and-drop the folder or connect the repo; no build step.
 
 ---
 
@@ -391,7 +423,7 @@ Contributions are welcome! Here's how to get started:
 - [ ] Drag-and-drop task reordering
 - [ ] Task categories/tags
 - [ ] Export tasks as JSON/CSV
-- [ ] PWA support (offline mode + install)
+- [x] PWA support (offline mode + Add to Home Screen)
 - [ ] Subtasks / nested checklists
 - [ ] Pomodoro timer integration
 - [ ] Multi-board / project support
